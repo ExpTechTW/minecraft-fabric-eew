@@ -1,35 +1,38 @@
 package com.exptech.eew.client;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.exptech.eew.client.core.EarthquakeDataFetcher;
+import com.exptech.eew.client.utils.TranslationManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EewClient implements ClientModInitializer {
 
+    public static final String MOD_ID = "eew";
+    public static String VERSION = "0.0.0";
     private boolean hasJoinedWorld = false;
-    private static final Map<String, String> translations = new HashMap<>();
-    private static final Map<String, String> fallbackTranslations = new HashMap<>();
+    private static final String EARTHQUAKE_DATA_URL = "https://api-1.exptech.dev/api/v1/eq/eew/1717992034410";
+    public static final Logger LOGGER = LoggerFactory.getLogger("EewClient");
 
     @Override
     public void onInitializeClient() {
         try {
-            loadTranslationFile("/lang/zh_tw.json", fallbackTranslations);
+            FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(modContainer -> VERSION = modContainer.getMetadata().getVersion().getFriendlyString());
+
+            TranslationManager.initialize();
 
             ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
                 hasJoinedWorld = false;
-                loadUserLanguageTranslations();
+                EarthquakeDataFetcher.startFetching(EARTHQUAKE_DATA_URL);
+                LOGGER.info("Started fetching earthquake data");
             });
 
             ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -38,52 +41,24 @@ public class EewClient implements ClientModInitializer {
                     hasJoinedWorld = true;
                 }
             });
+
+            Runtime.getRuntime().addShutdownHook(new Thread(this::onGameClosing));
         } catch (Exception e) {
-            System.err.println("EewClient 初始化時發生錯誤：");
-            e.printStackTrace();
+            LOGGER.error("Error initializing EewClient", e);
         }
     }
 
-    private void loadUserLanguageTranslations() {
-        String userLang = getUserLanguage();
-        loadTranslationFile("/lang/" + userLang + ".json", translations);
-    }
-
-    private void loadTranslationFile(String filePath, Map<String, String> targetMap) {
-        try {
-            InputStream inputStream = EewClient.class.getResourceAsStream(filePath);
-            if (inputStream != null) {
-                InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                Type type = new TypeToken<Map<String, String>>() {
-                }.getType();
-                Map<String, String> loadedTranslations = new Gson().fromJson(reader, type);
-                targetMap.putAll(loadedTranslations);
-                reader.close();
-            } else {
-                System.err.println("翻譯文件未找到: " + filePath);
-            }
-        } catch (Exception e) {
-            System.err.println("加載翻譯文件時發生錯誤: " + filePath);
-            e.printStackTrace();
-        }
-    }
-
-    private String getUserLanguage() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null && client.getLanguageManager() != null) {
-            return client.getLanguageManager().getLanguage();
-        }
-        System.err.println("無法獲取用戶語言設置，使用默認值 'zh_tw'");
-        return "zh_tw";
+    private void onGameClosing() {
+        LOGGER.info("Game is closing, stopping earthquake data fetching...");
+        EarthquakeDataFetcher.stopFetching();
     }
 
     private void displayWelcomeMessage(MinecraftClient client) {
-        String translatedMessage = getTranslation("welcome");
-        Text text = Text.literal(translatedMessage).formatted(Formatting.GREEN);
-        client.player.sendMessage(text, false);
-    }
+        MutableText colorfulText = Text.literal("")
+                .append(Text.literal("[Minecraft EEW Mod]").formatted(Formatting.GREEN))
+                .append(Text.literal(VERSION).formatted(Formatting.DARK_BLUE));
 
-    public static String getTranslation(String key) {
-        return translations.getOrDefault(key, fallbackTranslations.getOrDefault(key, key));
+        assert client.player != null;
+        client.player.sendMessage(colorfulText, false);
     }
 }
