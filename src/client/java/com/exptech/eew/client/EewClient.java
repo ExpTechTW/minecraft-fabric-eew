@@ -55,8 +55,8 @@ public class EewClient implements ClientModInitializer {
 
     private void displayWelcomeMessage(MinecraftClient client) {
         MutableText colorfulText = Text.literal("")
-                .append(Text.literal("[Minecraft EEW Mod]").formatted(Formatting.GREEN))
-                .append(Text.literal(VERSION).formatted(Formatting.DARK_BLUE));
+                .append(Text.literal("[Minecraft EEW Mod] ").formatted(Formatting.GOLD))
+                .append(Text.literal(VERSION).formatted(Formatting.GREEN));
 
         assert client.player != null;
         client.player.sendMessage(colorfulText, false);
