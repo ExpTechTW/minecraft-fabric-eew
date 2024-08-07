@@ -1,9 +1,9 @@
 package com.exptech.eew.client.utils;
 
 import com.exptech.eew.client.EewClient;
-import org.yaml.snakeyaml.Yaml;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
