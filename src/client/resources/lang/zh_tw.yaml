@@ -1,4 +1,6 @@
-"warn": "地震速報"
-"alert": "緊急地震速報"
-"cwa": "中央氣象署"
-"eew": "\n(%author% %status% 第%serial%報)\n%time% %loc%\nM%mag% %depth%km 最大震度%max%"
+warn: "地震速報"
+alert: "緊急地震速報"
+
+cwa: "中央氣象署"
+
+eew: "\n(%author% %status% 第%serial%報)\n%time% %loc%\nM%mag% %depth%km 最大震度%max%"
