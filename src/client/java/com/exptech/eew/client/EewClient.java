@@ -19,7 +19,7 @@ public class EewClient implements ClientModInitializer {
     public static final String MOD_ID = "eew";
     public static String VERSION = "0.0.0";
     private boolean hasJoinedWorld = false;
-    private static final String EARTHQUAKE_DATA_URL = "https://api-1.exptech.dev/api/v1/eq/eew/1717992034410";
+    private static final String EARTHQUAKE_DATA_URL = "https://api-1.exptech.dev/api/v1/eq/eew";
     public static final Logger LOGGER = LoggerFactory.getLogger("EewClient");
 
     @Override
@@ -55,7 +55,7 @@ public class EewClient implements ClientModInitializer {
 
     private void displayWelcomeMessage(MinecraftClient client) {
         MutableText colorfulText = Text.literal("")
-                .append(Text.literal("[Minecraft EEW Mod] ").formatted(Formatting.GOLD))
+                .append(Text.literal("[Minecraft EEW Mod] ").formatted(Formatting.BLUE))
                 .append(Text.literal(VERSION).formatted(Formatting.GREEN));
 
         assert client.player != null;
